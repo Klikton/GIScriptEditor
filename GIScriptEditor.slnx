@@ -1,0 +1,8 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="GIScript/GIScript.vcxproj" Id="eb7d79fa-5b34-4d02-8966-262186aa6290" />
+  <Project Path="GIScriptEditor/GIScriptEditor.vcxproj" Id="5a51dfb8-fb9f-4a1b-8ab7-48f87cf0aa51" />
+</Solution>
