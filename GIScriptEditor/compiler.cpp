@@ -1335,10 +1335,10 @@ struct NodeFactory
 				case Script::VarType::Float:
 				case Script::VarType::Vec:
 					break;
-				default: throw std::runtime_error("Unsupported variable type for subtraction");
+				default: throw std::runtime_error("Unsupported variable type for multiplication");
 				}
 			};
-		if (e1.retType.type != e2.retType.type) throw std::runtime_error("Type mismatch for subtraction");
+		if (e1.retType.type != e2.retType.type && !(e1.retType.type == Script::VarType::Vec && e2.retType.type == Script::VarType::Float)) throw std::runtime_error("Type mismatch for multiplication");
 		check(e1.retType.type);
 		check(e2.retType.type);
 		switch (e1.retType.type)
@@ -1364,7 +1364,11 @@ struct NodeFactory
 			return node;
 		}
 		case Script::VarType::Vec:
-			return graph.CreateNode(_3DVectorZoom);
+		{
+			auto node = graph.CreateNode(_3DVectorZoom);
+			if (e2.literal.index() != 0) node->Set(1, std::get<float>(e2.literal));
+			return node;
+		}
 		default: break;
 		}
 		throw std::runtime_error("Unreachable code");
