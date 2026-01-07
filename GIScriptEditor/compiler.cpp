@@ -673,6 +673,12 @@ struct LValueContext
 	std::unique_ptr<INode> CreateSetter(IGraph& graph, const Script::VarType& type) const;
 };
 
+struct UserFunction
+{
+	std::string id;
+	bool global;
+};
+
 struct ExprContent
 {
 	mutable std::vector<std::unique_ptr<INode>> nodes;
@@ -685,7 +691,7 @@ struct ExprContent
 	mutable bool branch = false;
 	mutable std::vector<unsigned> branches;
 	std::variant<std::monostate, int64_t, float, std::string, bool> literal;
-	std::variant<std::monostate, LValueContext, FunctionRegistry::Ref, std::vector<std::shared_ptr<ExprContent>>, std::string> extra;
+	std::variant<std::monostate, LValueContext, FunctionRegistry::Ref, std::vector<std::shared_ptr<ExprContent>>, UserFunction> extra;
 
 	ExprContent() = default;
 
@@ -1843,10 +1849,180 @@ static const std::unordered_set<std::string> KEYWORDS
 	"null","true","false","this"
 };
 
+static void DefinePin(INode& node, const Script::VarType& type, int pin, bool generic, bool out)
+{
+	if (generic)
+	{
+		switch (type.type)
+		{
+		case Script::VarType::Int:
+			node.Set(pin, ServerVarType::Integer, -1, out);
+			break;
+		case Script::VarType::Float:
+			node.Set(pin, ServerVarType::Float, -1, out);
+			break;
+		case Script::VarType::String:
+			node.Set(pin, ServerVarType::String, -1, out);
+			break;
+		case Script::VarType::Bool:
+			node.Set(pin, ServerVarType::Boolean, -1, out);
+			break;
+		case Script::VarType::Entity:
+			node.Set(pin, ServerVarType::Entity, -1, out);
+			break;
+		case Script::VarType::Vec:
+			node.Set(pin, ServerVarType::Vector, -1, out);
+			break;
+		case Script::VarType::Guid:
+			switch (std::any_cast<GuidEx>(type.extra))
+			{
+			case GuidEx::Entity:
+				node.Set(pin, ServerVarType::GUID, -1, out);
+				break;
+			case GuidEx::Prefab:
+				node.Set(pin, ServerVarType::Prefab, -1, out);
+				break;
+			case GuidEx::Configuration:
+				node.Set(pin, ServerVarType::Configuration, -1, out);
+				break;
+			case GuidEx::Faction:
+				node.Set(pin, ServerVarType::Faction, -1, out);
+				break;
+			}
+			break;
+		case Script::VarType::List:
+			switch (std::any_cast<Script::VarType>(type.extra).type)
+			{
+			case Script::VarType::Int:
+				node.Set(pin, ServerVarType::IntegerList, -1, out);
+				break;
+			case Script::VarType::Float:
+				node.Set(pin, ServerVarType::FloatList, -1, out);
+				break;
+			case Script::VarType::String:
+				node.Set(pin, ServerVarType::StringList, -1, out);
+				break;
+			case Script::VarType::Bool:
+				node.Set(pin, ServerVarType::BooleanList, -1, out);
+				break;
+			case Script::VarType::Entity:
+				node.Set(pin, ServerVarType::EntityList, -1, out);
+				break;
+			case Script::VarType::Vec:
+				node.Set(pin, ServerVarType::VectorList, -1, out);
+				break;
+			case Script::VarType::Guid:
+				switch (std::any_cast<GuidEx>(type.extra))
+				{
+				case GuidEx::Entity:
+					node.Set(pin, ServerVarType::GUIDList, -1, out);
+					break;
+				case GuidEx::Prefab:
+					node.Set(pin, ServerVarType::PrefabList, -1, out);
+					break;
+				case GuidEx::Configuration:
+					node.Set(pin, ServerVarType::ConfigurationList, -1, out);
+					break;
+				case GuidEx::Faction:
+					node.Set(pin, ServerVarType::FactionList, -1, out);
+					break;
+				}
+				break;
+			default: throw std::runtime_error("Type unsupported");
+			}
+			break;
+		default: throw std::runtime_error("Type unsupported");
+		}
+		return;
+	}
+	switch (type.type)
+	{
+	case Script::VarType::Int:
+		node.Set(pin, ServerVarType::Integer, out);
+		break;
+	case Script::VarType::Float:
+		node.Set(pin, ServerVarType::Float, out);
+		break;
+	case Script::VarType::String:
+		node.Set(pin, ServerVarType::String, out);
+		break;
+	case Script::VarType::Bool:
+		node.Set(pin, ServerVarType::Boolean, out);
+		break;
+	case Script::VarType::Entity:
+		node.Set(pin, ServerVarType::Entity, out);
+		break;
+	case Script::VarType::Vec:
+		node.Set(pin, ServerVarType::Vector, out);
+		break;
+	case Script::VarType::Guid:
+		switch (std::any_cast<GuidEx>(type.extra))
+		{
+		case GuidEx::Entity:
+			node.Set(pin, ServerVarType::GUID, out);
+			break;
+		case GuidEx::Prefab:
+			node.Set(pin, ServerVarType::Prefab, out);
+			break;
+		case GuidEx::Configuration:
+			node.Set(pin, ServerVarType::Configuration, out);
+			break;
+		case GuidEx::Faction:
+			node.Set(pin, ServerVarType::Faction, out);
+			break;
+		}
+		break;
+	case Script::VarType::List:
+		switch (std::any_cast<Script::VarType>(type.extra).type)
+		{
+		case Script::VarType::Int:
+			node.Set(pin, ServerVarType::IntegerList, out);
+			break;
+		case Script::VarType::Float:
+			node.Set(pin, ServerVarType::FloatList, out);
+			break;
+		case Script::VarType::String:
+			node.Set(pin, ServerVarType::StringList, out);
+			break;
+		case Script::VarType::Bool:
+			node.Set(pin, ServerVarType::BooleanList, out);
+			break;
+		case Script::VarType::Entity:
+			node.Set(pin, ServerVarType::EntityList, out);
+			break;
+		case Script::VarType::Vec:
+			node.Set(pin, ServerVarType::VectorList, out);
+			break;
+		case Script::VarType::Guid:
+			switch (std::any_cast<GuidEx>(type.extra))
+			{
+			case GuidEx::Entity:
+				node.Set(pin, ServerVarType::GUIDList, out);
+				break;
+			case GuidEx::Prefab:
+				node.Set(pin, ServerVarType::PrefabList, out);
+				break;
+			case GuidEx::Configuration:
+				node.Set(pin, ServerVarType::ConfigurationList, out);
+				break;
+			case GuidEx::Faction:
+				node.Set(pin, ServerVarType::FactionList, out);
+				break;
+			}
+			break;
+		default: throw std::runtime_error("Type unsupported");
+		}
+		break;
+	default: throw std::runtime_error("Type unsupported");
+	}
+}
+
 class NodeGenerator : public ASTVisitor
 {
+	friend Compiler;
 	using enum NodeId;
 	IGraph& graph;
+	Compiler& compiler;
 	INode* prev = nullptr;
 	INode* entrypoint = nullptr;
 	INode* current_loop = nullptr;
@@ -1856,12 +2032,10 @@ class NodeGenerator : public ASTVisitor
 
 	struct
 	{
-		std::vector<INode*> parameters;
 		INode* ret;
 		std::optional<Script::VarType> type;
 		bool in_function;
 	} function_header{};
-
 
 	struct
 	{
@@ -1881,7 +2055,7 @@ class NodeGenerator : public ASTVisitor
 		std::unordered_map<std::string, Declaration> map;
 	} function_storage;
 public:
-	explicit NodeGenerator(IGraph& graph) : graph(graph)
+	explicit NodeGenerator(IGraph& graph, Compiler& compiler) : graph(graph), compiler(compiler)
 	{
 	}
 
@@ -1941,6 +2115,50 @@ private:
 		throw std::runtime_error("Unreached code");
 	}
 
+	static void SetLiteralNormal(INode& node, int pin, const ExprContent& expr, const Script::VarType& type)
+	{
+		switch (expr.literal.index())
+		{
+		case 0: return;
+		case 1:
+		case 2:
+			switch (type.type)
+			{
+			case Script::VarType::Bool:
+				node.Set(pin, Enum{ (unsigned)expr.Get<int64_t>() }, ServerVarType::Boolean);
+				return;
+			case Script::VarType::Guid:
+				switch (std::any_cast<GuidEx>(type.extra))
+				{
+				case GuidEx::Entity:
+					node.Set(pin, GUID{ (unsigned)expr.Get<int64_t>() }, ServerVarType::GUID);
+					break;
+				case GuidEx::Prefab:
+					node.Set(pin, GUID{ (unsigned)expr.Get<int64_t>() }, ServerVarType::Prefab);
+					break;
+				case GuidEx::Configuration:
+					node.Set(pin, GUID{ (unsigned)expr.Get<int64_t>() }, ServerVarType::Configuration);
+					break;
+				case GuidEx::Faction:
+					node.Set(pin, GUID{ (unsigned)expr.Get<int64_t>() }, ServerVarType::Faction);
+					break;
+				}
+				return;
+			case Script::VarType::Int:
+				node.Set(pin, expr.Get<uint64_t>());
+				return;
+			case Script::VarType::Float:
+				node.Set(pin, expr.Get<float>());
+				return;
+			default: throw std::runtime_error("Type mismatch");
+			}
+		case 3:
+			node.Set(pin, std::get<std::string>(expr.literal));
+			return;
+		}
+		throw std::runtime_error("Unreached code");
+	}
+
 	auto layout() { return [this](INode* n) { AutoLayout(n); }; }
 
 	void VisitEvent(const std::string& event, const std::vector<Variable>& parameters) override
@@ -1966,8 +2184,7 @@ private:
 
 	void VisitFunction(const std::string& name, std::optional<Script::VarType> ret, const std::vector<Variable>& parameters) override
 	{
-		if (function_storage.map.contains(name)) throw std::runtime_error(std::format("function '{}' is already defined", name));
-		function_header.parameters.clear();
+		if (function_storage.map.contains(name) || compiler.GlobalFunctions.map.contains(name)) throw std::runtime_error(std::format("function '{}' is already defined", name));
 		function_header.in_function = true;
 		if (prev) { x = 0; y += 800; }
 		graph.AddComment(std::format("function {}", name), x - 400, y);
@@ -1975,7 +2192,7 @@ private:
 		auto& [dp, dr, de] = function_storage.map[name];
 		for (auto& p : parameters)
 		{
-			auto n = function_header.parameters.emplace_back(&graph.AddNode(NodeFactory::GetLocalVariable(graph, p.Type())));
+			auto n = &graph.AddNode(NodeFactory::GetLocalVariable(graph, p.Type()));
 			AutoLayout(n);
 			scope.add(p.Id(), std::make_unique<LocalVar>(p.Type(), VarContent{ n }));
 			n->SetComment(p.Id());
@@ -1986,13 +2203,57 @@ private:
 			auto n = function_header.ret = &graph.AddNode(NodeFactory::GetLocalVariable(graph, *ret));
 			AutoLayout(n);
 			n->SetComment("return");
-			function_header.type = std::move(ret);
 			dr = { n,*ret };
+			function_header.type = std::move(ret);
 		}
 		de = entrypoint = prev = &graph.AddNode(DoubleBranch);
 		prev->Set(0, Enum{ 1 }, ServerVarType::Boolean);
 		prev->SetComment("Dummy EntryPoint");
 		AutoLayout(prev);
+	}
+
+	void VisitGlobalFunction(const std::string& name, std::optional<Script::VarType> ret, const std::vector<Variable>& parameters)
+	{
+		if (compiler.GlobalFunctions.map.contains(name)) throw std::runtime_error(std::format("function '{}' is already defined", name));
+		function_header.in_function = true;
+		if (prev) { x = 0; y += 800; }
+		auto& [dp, dr, gr] = compiler.GlobalFunctions.map[name];
+		uint32_t pin = 0;
+		for (auto& p : parameters)
+		{
+			auto n = &graph.AddNode(NodeFactory::GetLocalVariable(graph, p.Type()));
+			AutoLayout(n);
+			scope.add(p.Id(), std::make_unique<LocalVar>(p.Type(), VarContent{ n }));
+			n->SetComment(p.Id());
+			auto& sn = graph.AddNode(NodeFactory::SetLocalVariable(graph, p.Type()));
+			AutoLayout(&sn);
+			DefinePin(sn, p.Type(), 1, true, false);
+			graph.SetCompositePin(sn, PinType::Input, 1, pin);
+			graph.SetCompositePinName(PinType::Input, pin++, p.Id());
+			if (!entrypoint) entrypoint = &sn;
+			if (prev) prev->Connect(sn);
+			prev = &sn;
+			dp.emplace_back(p.Type());
+		}
+		if (ret.has_value())
+		{
+			auto n = function_header.ret = &graph.AddNode(NodeFactory::GetLocalVariable(graph, *ret));
+			AutoLayout(n);
+			n->SetComment("return");
+			DefinePin(*n, *ret, 1, true, true);
+			graph.SetCompositePin(*n, PinType::Output, 1, 0);
+			dr = *ret;
+			function_header.type = std::move(ret);
+		}
+		if (!entrypoint)
+		{
+			entrypoint = prev = &graph.AddNode(DoubleBranch);
+			prev->Set(0, Enum{ 1 }, ServerVarType::Boolean);
+			prev->SetComment("Dummy EntryPoint");
+			AutoLayout(prev);
+		}
+		graph.SetCompositePin(*entrypoint, PinType::Inflow, 0, 0);
+		gr = &graph;
 	}
 
 	Script::VarType TypeInference(const std::any& value) override
@@ -2579,7 +2840,31 @@ private:
 		ExprBuilder builder(*expr);
 		if (v->extra.index() == 4)
 		{
-			auto& func = function_storage.map[std::get<4>(v->extra)];
+			auto& uf = std::get<4>(v->extra);
+			if (uf.global)
+			{
+				auto& func = compiler.GlobalFunctions.map[uf.id];
+				if (exprs.size() != func.parameters.size()) throw std::runtime_error("Call parameters count not equal");
+				auto call = builder.AddFlow(graph.CreateNode(*func.graph));
+				unsigned i = 0;
+				for (auto& arg : func.parameters)
+				{
+					auto j = i++;
+					auto& e = exprs[j];
+					if (e->retType != arg) throw std::runtime_error("Parameter type mismatch");
+					if (e->literal.index() == 0) builder.Combine(*e, j);
+					else SetLiteralNormal(*call, j, *e, arg);
+					expr->start = call;
+				}
+				if (func.ret.has_value())
+				{
+					expr->retType = *func.ret;
+					expr->end = call;
+					expr->pin = 0;
+				}
+				return expr.release();
+			}
+			auto& func = function_storage.map[uf.id];
 			if (exprs.size() != func.parameters.size()) throw std::runtime_error("Call parameters count not equal");
 			unsigned i = 0;
 			for (auto& arg : func.parameters)
@@ -2647,11 +2932,18 @@ private:
 			expr->extra = *func;
 			return expr.release();
 		}
+		if (auto func = compiler.GlobalFunctions.map.find(id); func != compiler.GlobalFunctions.map.end())
+		{
+			auto expr = std::make_unique<ExprContent>();
+			expr->retType.type = Script::VarType::Function;
+			expr->extra = UserFunction{ id ,true };
+			return expr.release();
+		}
 		if (auto func = function_storage.map.find(id); func != function_storage.map.end())
 		{
 			auto expr = std::make_unique<ExprContent>();
 			expr->retType.type = Script::VarType::Function;
-			expr->extra = id;
+			expr->extra = UserFunction{ id ,false };
 			return expr.release();
 		}
 		auto var = scope.find(id);
@@ -2960,20 +3252,60 @@ private:
 		r->Connect(n, 0, 0);
 		v->end->Connect(n, v->pin, 1);
 		prev->Connect(n);
+		prev = &n;
 	}
 };
 
-Compiler::Compiler()
+void Compiler::AddGlobalFunction(const std::string& name, std::unique_ptr<FunctionNode> func)
+{
+	auto& [graph, ast] = symbol_modules.emplace_back(CreateGraph(name, GraphType::Composite), std::move(func));
+	project->Define(*graph);
+}
+
+Compiler::Compiler(std::unique_ptr<IProject> project) : project(std::move(project))
 {
 }
 
-void Compiler::Compile(const std::string& name, const std::string& code)
+void Compiler::AddModule(const std::string& name, const std::string& code)
 {
-	NodeGenerator g(*graphs.emplace_back(CreateGraph(name)));
-	Parse(code)->Visit(g);
+	auto& [graph, ast] = modules.emplace_back(CreateGraph(name, GraphType::Entity), Parse(code));
+	project->Define(*graph);
+	for (auto gfs = ((RootNode*)ast.get())->GlobalFunctions(); auto& f : gfs)
+	{
+		auto name = f->Name();
+		AddGlobalFunction("GIScript#" + name, std::move(f));
+	}
 }
 
-void Compiler::Write(IProject* project) const
+void Compiler::Compile()
 {
-	for (const auto& g : graphs) project->Add(*g);
+	for (auto& [graph, ast] : symbol_modules)
+	{
+		auto& f = *(FunctionNode*)ast.get();
+		NodeGenerator g(*graph, *this);
+		g.scope.enter();
+		g.VisitGlobalFunction(f.Name(), f.Ret(), f.Parameters());
+		f.VisitBody(g);
+		g.scope.exit();
+		auto ex = g.prev;
+		if (g.flow != 0)
+		{
+			ex = &graph->AddNode(NodeId::DoubleBranch);
+			ex->Set(0, Enum{ 1 }, ServerVarType::Boolean);
+			ex->SetComment("Dummy ExitPoint");
+			g.AutoLayout(ex);
+		}
+		graph->SetCompositePin(*ex, PinType::Outflow, 0, 0);
+	}
+	for (auto& [graph, ast] : modules)
+	{
+		NodeGenerator g(*graph, *this);
+		ast->Visit(g);
+	}
+}
+
+void Compiler::Write() const
+{
+	for (const auto& [graph, ast] : symbol_modules) project->Add(*graph);
+	for (const auto& [graph, ast] : modules) project->Add(*graph);
 }

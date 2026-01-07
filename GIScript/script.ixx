@@ -10,6 +10,7 @@ export namespace GI::Script
 	class Parser : public GIScriptBaseVisitor
 	{
 		std::vector<std::unique_ptr<Ugc::Script::DeclarationNode>> declarations;
+		std::vector<std::unique_ptr<Ugc::Script::FunctionNode>> global_functions;
 		antlr4::Token* func_end;
 		antlr4::CommonTokenStream& tokens;
 

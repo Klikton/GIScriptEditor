@@ -3534,7 +3534,7 @@ namespace Ugc::NodeGraph
 	template<typename T, typename... Types>
 	inline constexpr bool is_one_of_v = (std::is_same_v<T, Types> || ...);
 
-	template<typename T> requires is_one_of_v<T, unsigned long long, float, bool, std::string, Vec, Enum, GUID>
+	template<typename T> requires is_one_of_v<T, unsigned long long, float, std::string, Vec, Enum, GUID>
 	using List = std::vector<T>;
 
 	struct INode
@@ -3565,42 +3565,66 @@ namespace Ugc::NodeGraph
 		virtual void Set(int pin, unsigned index, unsigned value) = 0;
 		virtual void Set(int pin, unsigned index, double value) = 0;
 		virtual void Set(int pin, unsigned index, bool out) = 0;
+		virtual void Set(int pin, VarType type, bool out) = 0;
+		virtual void Set(int pin, VarType type, unsigned index, bool out) = 0;
 		virtual void Fill(int pin, long long value) = 0;
 		virtual void Fill(int pin, float value) = 0;
 		virtual void Fill(int pin, const Enum& value, VarType type) = 0;
 		virtual void Fill(int pin, const GUID& value, VarType type) = 0;
 		virtual void Fill(int pin, const std::string& value) = 0;
 		virtual void Fill(int pin, const Vec& value) = 0;
+		virtual void Fill(int pin, const void* ptr, int length, VarType type) = 0;
 		virtual void SetPos(float x, float y) = 0;
 		virtual void SetComment(const std::string& text) = 0;
 
 		template<typename T>
-		void Set(int pin, const List<T>& list)
+		void Set(int pin, const List<T>& list, ServerVarType type = ServerVarType::Unknown)
 		{
 			if constexpr (std::is_same_v<T, unsigned long long>) Set(pin, list.data(), list.size(), ServerVarType::IntegerList);
 			else if constexpr (std::is_same_v<T, float>) Set(pin, list.data(), list.size(), ServerVarType::FloatList);
-			else if constexpr (std::is_same_v<T, bool>) Set(pin, list.data(), list.size(), ServerVarType::BooleanList);
 			else if constexpr (std::is_same_v<T, std::string>) Set(pin, list.data(), list.size(), ServerVarType::StringList);
-			else if constexpr (std::is_same_v<T, Enum>) Set(pin, list.data(), list.size(), ClientVarType::EnumList);
 			else if constexpr (std::is_same_v<T, Vec>) Set(pin, list.data(), list.size(), ServerVarType::VectorList);
-			else if constexpr (std::is_same_v<T, GUID>) Set(pin, list.data(), list.size(), ServerVarType::GUIDList);
+			else if constexpr (is_one_of_v<T, GUID, Enum>) Set(pin, list.data(), list.size(), type);
 			else static_assert(false, "Unsupported type");
 		}
 
 		template<typename T>
-		void Set(int pin, unsigned index, const List<T>& list)
+		void Set(int pin, unsigned index, const List<T>& list, ServerVarType type = ServerVarType::Unknown)
 		{
 			if constexpr (std::is_same_v<T, unsigned long long>) Set(pin, list.data(), list.size(), ServerVarType::IntegerList, index);
 			else if constexpr (std::is_same_v<T, float>) Set(pin, list.data(), list.size(), ServerVarType::FloatList, index);
-			else if constexpr (std::is_same_v<T, bool>) Set(pin, list.data(), list.size(), ServerVarType::BooleanList, index);
 			else if constexpr (std::is_same_v<T, std::string>) Set(pin, list.data(), list.size(), ServerVarType::StringList, index);
-			else if constexpr (std::is_same_v<T, Enum>) Set(pin, list.data(), list.size(), ClientVarType::EnumList, index);
 			else if constexpr (std::is_same_v<T, Vec>) Set(pin, list.data(), list.size(), ServerVarType::VectorList, index);
-			else if constexpr (std::is_same_v<T, GUID>) Set(pin, list.data(), list.size(), ServerVarType::GUIDList, index);
+			else if constexpr (is_one_of_v<T, GUID, Enum>) Set(pin, list.data(), list.size(), type, index);
+			else static_assert(false, "Unsupported type");
+		}
+
+		template<typename T>
+		void Fill(int pin, const List<T>& list, ServerVarType type = ServerVarType::Unknown)
+		{
+			if constexpr (std::is_same_v<T, unsigned long long>) Fill(pin, list.data(), list.size(), ServerVarType::IntegerList);
+			else if constexpr (std::is_same_v<T, float>) Fill(pin, list.data(), list.size(), ServerVarType::FloatList);
+			else if constexpr (std::is_same_v<T, std::string>) Fill(pin, list.data(), list.size(), ServerVarType::StringList);
+			else if constexpr (std::is_same_v<T, Vec>) Fill(pin, list.data(), list.size(), ServerVarType::VectorList);
+			else if constexpr (is_one_of_v<T, GUID, Enum>) Fill(pin, list.data(), list.size(), type);
 			else static_assert(false, "Unsupported type");
 		}
 
 		virtual ~INode() = 0;
+	};
+
+	enum class GraphType : uint8_t
+	{
+		Entity,
+		Composite
+	};
+
+	enum class PinType : uint8_t
+	{
+		Inflow,
+		Outflow,
+		Input,
+		Output
 	};
 
 	struct IGraph
@@ -3609,17 +3633,35 @@ namespace Ugc::NodeGraph
 		virtual INode& AddNode(std::unique_ptr<INode> node) = 0;
 		virtual void AddComment(const std::string& text, float x, float y) = 0;
 		virtual std::unique_ptr<INode> CreateNode(NodeId id) = 0;
+		virtual std::unique_ptr<INode> CreateNode(IGraph& composite) = 0;
 		virtual INode* Find(unsigned id) = 0;
+		virtual void SetCompositePin(INode& node, PinType type, uint32_t index, uint32_t composite_pin) = 0;
+		virtual void SetCompositePinName(PinType type, uint32_t index, const std::string& name) = 0;
 		virtual ~IGraph() = 0;
+	};
+
+	struct NodeReference
+	{
+		std::string name;
+
+		struct Referenced
+		{
+			std::string name;
+			bool composite;
+		};
+
+		std::vector<Referenced> referenced;
 	};
 
 	struct IProject
 	{
 		virtual void Add(const IGraph& graph) = 0;
+		virtual void Define(IGraph& graph) = 0;
 		virtual void Save(const std::filesystem::path& path) const = 0;
+		virtual std::vector<NodeReference> GetReferences() = 0;
 		virtual ~IProject() = 0;
 	};
 
-	std::unique_ptr<IGraph> CreateGraph(const std::string& name);
+	std::unique_ptr<IGraph> CreateGraph(const std::string& name, GraphType type);
 	std::unique_ptr<IProject> LoadProject(const std::filesystem::path& path);
 }

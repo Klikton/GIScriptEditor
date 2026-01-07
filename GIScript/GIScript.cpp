@@ -19,7 +19,7 @@ DeclarationNode::DeclarationNode()
 {
 }
 
-RootNode::RootNode(std::vector<std::unique_ptr<DeclarationNode>> declarations) : declarations(std::move(declarations))
+RootNode::RootNode(std::vector<std::unique_ptr<DeclarationNode>> declarations, std::vector<std::unique_ptr<FunctionNode>> global_functions) : declarations(std::move(declarations)), global_functions(std::move(global_functions))
 {
 }
 

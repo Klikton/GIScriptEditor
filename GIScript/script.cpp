@@ -110,7 +110,8 @@ std::any Parser::visitFunction(GIScriptParser::FunctionContext* context)
 			parameters.emplace_back(p->ID()->getText(), MakeType(p->type()));
 		}
 	}
-	declarations.emplace_back(std::make_unique<FunctionNode>(context->functionSign()->ID()->getText(), std::move(ret), std::move(parameters), std::move(*std::unique_ptr<BlockNode>((BlockNode*)std::any_cast<StatementNode*>(visitBlock(context->block()))))));
+	if (context->children[0]->getText() == "global") global_functions.emplace_back(std::make_unique<FunctionNode>(context->functionSign()->ID()->getText(), std::move(ret), std::move(parameters), std::move(*std::unique_ptr<BlockNode>((BlockNode*)std::any_cast<StatementNode*>(visitBlock(context->block()))))));
+	else declarations.emplace_back(std::make_unique<FunctionNode>(context->functionSign()->ID()->getText(), std::move(ret), std::move(parameters), std::move(*std::unique_ptr<BlockNode>((BlockNode*)std::any_cast<StatementNode*>(visitBlock(context->block()))))));
 	return {};
 }
 
@@ -498,5 +499,5 @@ Parser::Parser(antlr4::CommonTokenStream& tokens) : func_end(nullptr), tokens(to
 
 std::unique_ptr<ASTNode> Parser::Release()
 {
-	return std::make_unique<RootNode>(std::move(declarations));
+	return std::make_unique<RootNode>(std::move(declarations), std::move(global_functions));
 }

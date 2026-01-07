@@ -22,12 +22,17 @@ export namespace Ugc::Script
 		DeclarationNode();
 	};
 
+	class FunctionNode;
+
 	class RootNode : public ASTNode
 	{
 		std::vector<std::unique_ptr<DeclarationNode>> declarations;
+		std::vector<std::unique_ptr<FunctionNode>> global_functions;
 	public:
-		explicit RootNode(std::vector<std::unique_ptr<DeclarationNode>> declarations);
+		explicit RootNode(std::vector<std::unique_ptr<DeclarationNode>> declarations, std::vector<std::unique_ptr<FunctionNode>> global_functions);
 		void Visit(ASTVisitor& visitor) override;
+
+		std::vector<std::unique_ptr<FunctionNode>> GlobalFunctions() { return std::move(global_functions); }
 	};
 
 	class StatementNode : public ASTNode
@@ -137,6 +142,11 @@ export namespace Ugc::Script
 	public:
 		FunctionNode(const std::string& name, std::optional<VarType> ret, std::vector<Variable> parameters, BlockNode body);
 		void Visit(ASTVisitor& visitor) override;
+
+		std::string Name() const { return name; }
+		const std::vector<Variable>& Parameters() const { return parameters; }
+		std::optional<VarType> Ret() const { return ret; }
+		void VisitBody(ASTVisitor& visitor) { body.Visit(visitor); }
 	};
 
 	class Return : public StatementNode

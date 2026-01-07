@@ -102,7 +102,7 @@ void Renderer::BeginRender()
 void Renderer::EndRender() const
 {
 	d2d_ctx->EndDraw();
-	WaitForSingleObject(swap_event, INFINITE);
+	WaitForSingleObject(swap_event, 10);
 	swap_chain->Present(1, 0);
 }
 

@@ -120,18 +120,18 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 				{
 					if (!std::filesystem::exists(pp)) throw std::runtime_error("Project file not exists");
 					if (!(std::filesystem::exists(sd) && std::filesystem::is_directory(sd))) throw std::runtime_error("Script directory not exists");
-					auto project = Ugc::NodeGraph::LoadProject(pp);
-					Tools::Compiler compiler;
+					Tools::Compiler compiler(Ugc::NodeGraph::LoadProject(pp));
 					int count = 0;
 					for (auto& entry : std::filesystem::directory_iterator(sd))
 					{
 						if (!std::filesystem::is_regular_file(entry.status())) continue;
 						if (!entry.path().string().ends_with(".gis")) continue;
-						compiler.Compile((char*)entry.path().stem().u8string().data(), LoadScript(entry.path()));
+						compiler.AddModule((char*)entry.path().stem().u8string().data(), LoadScript(entry.path()));
 						++count;
 					}
-					compiler.Write(project.get());
-					project->Save(pp);
+					compiler.Compile();
+					compiler.Write();
+					compiler.Release()->Save(pp);
 					co_await window.Dialog(L"提示", std::format(L"写入完成。共编译 {} 个文件。", count), MB_ICONINFORMATION);
 					co_return;
 				}
