@@ -13,46 +13,61 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="源文件\framework">
+      <UniqueIdentifier>{b90e62ab-c075-46b7-a658-584c90271b7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\app">
+      <UniqueIdentifier>{09ef6452-71e5-4a18-a0a4-bb39e5b1a203}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\tools">
+      <UniqueIdentifier>{a5c97042-b90f-4ad5-9c4c-c159e2f7fc68}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="window.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="window.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="utils.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="render.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="render.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\GIScript\GIScript.ixx">
       <Filter>头文件</Filter>
     </ClCompile>
-    <ClCompile Include="compiler.ixx">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="compiler.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="widgets.ixx">
-      <Filter>源文件</Filter>
+      <Filter>源文件\framework</Filter>
     </ClCompile>
     <ClCompile Include="widgets.cpp">
-      <Filter>源文件</Filter>
+      <Filter>源文件\framework</Filter>
+    </ClCompile>
+    <ClCompile Include="window.cpp">
+      <Filter>源文件\framework</Filter>
+    </ClCompile>
+    <ClCompile Include="window.ixx">
+      <Filter>源文件\framework</Filter>
+    </ClCompile>
+    <ClCompile Include="render.cpp">
+      <Filter>源文件\framework</Filter>
+    </ClCompile>
+    <ClCompile Include="render.ixx">
+      <Filter>源文件\framework</Filter>
+    </ClCompile>
+    <ClCompile Include="main_window.cpp">
+      <Filter>源文件\app</Filter>
+    </ClCompile>
+    <ClCompile Include="windows.ixx">
+      <Filter>源文件\app</Filter>
+    </ClCompile>
+    <ClCompile Include="compiler.ixx">
+      <Filter>源文件\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="compiler.cpp">
+      <Filter>源文件\tools</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.ixx">
+      <Filter>源文件\tools</Filter>
     </ClCompile>
     <ClCompile Include="image.ixx">
-      <Filter>源文件</Filter>
+      <Filter>源文件\tools</Filter>
     </ClCompile>
     <ClCompile Include="image.cpp">
-      <Filter>源文件</Filter>
+      <Filter>源文件\tools</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

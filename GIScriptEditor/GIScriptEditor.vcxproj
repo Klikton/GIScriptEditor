@@ -158,6 +158,7 @@
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Async</ExceptionHandling>
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Async</ExceptionHandling>
     </ClCompile>
+    <ClCompile Include="main_window.cpp" />
     <ClCompile Include="render.cpp" />
     <ClCompile Include="render.ixx" />
     <ClCompile Include="utils.ixx" />
@@ -165,6 +166,7 @@
     <ClCompile Include="widgets.ixx" />
     <ClCompile Include="window.cpp" />
     <ClCompile Include="window.ixx" />
+    <ClCompile Include="windows.ixx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GIScript\GIScript.vcxproj">
