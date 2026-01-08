@@ -4,6 +4,10 @@
 #include "resource.h"
 module app.window;
 
+import util;
+import compiler;
+import image;
+
 using namespace Editor;
 using namespace UI;
 using namespace App;
@@ -15,7 +19,7 @@ static auto LoadScript(const std::filesystem::path& path)
 	return code;
 }
 
-MainWindow::MainWindow() : Window("GIScriptEditor")
+MainWindow::MainWindow() : Window(L"GIScriptEditor")
 {
 	{
 		auto& t = AddWidget(std::make_unique<TextBox>(Renderer(), L"当前版本：1.0.3", 160));
@@ -184,7 +188,8 @@ MainWindow::MainWindow() : Window("GIScriptEditor")
 				switch (index)
 				{
 				case 0:
-					co_await Dialog(L"开发中", L"请等待后续更新", MB_ICONINFORMATION);
+					sub_window = std::make_unique<FindReferenceWindow>();
+					sub_window->Join(this);
 					break;
 				case 1:
 					co_await Dialog(L"想不出来", L"这里还没有东西哦", MB_ICONINFORMATION);

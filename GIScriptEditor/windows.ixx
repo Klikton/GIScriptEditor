@@ -2,10 +2,7 @@ export module app.window;
 
 import std;
 import window;
-import util;
-import compiler;
 import widgets;
-import image;
 
 export namespace Editor::App
 {
@@ -15,7 +12,14 @@ export namespace Editor::App
 		UI::TextBox* script_dir;
 		std::wstring pp, sd;
 		std::atomic<bool> lock;
+		std::unique_ptr<Window> sub_window;
 	public:
 		MainWindow();
+	};
+
+	class FindReferenceWindow : public Base::Window
+	{
+	public:
+		FindReferenceWindow();
 	};
 }

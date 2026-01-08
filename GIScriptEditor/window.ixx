@@ -12,16 +12,20 @@ export namespace Editor::Base
 	class Window
 	{
 		HWND handle;
+		bool standalone_window = false;
 		Render::Renderer renderer;
 		std::deque<std::unique_ptr<UI::Widget>> widgets;
 		UI::Widget* hovered = nullptr;
 		UI::Widget* pop_widget = nullptr;
+		Window* joined = nullptr;
 		Utils::Delegate<LRESULT(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)> message;
 	protected:
 		LRESULT ProcMsg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 	public:
-		explicit Window(const std::string& title);
+		explicit Window(const std::wstring& title);
+		virtual ~Window();
 		int Run();
+		void Join(Window* parent);
 		Utils::Future<void> Dialog(const std::wstring& title, const std::wstring& msg, UINT type) const;
 		Utils::Future<std::wstring> OpenFile(const std::vector<std::pair<std::wstring, std::wstring>>& filters) const;
 		Utils::Future<std::wstring> SaveFile(const std::wstring& default_ext = L"", const std::vector<std::pair<std::wstring, std::wstring>>& filters = {}) const;

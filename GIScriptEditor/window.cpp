@@ -25,7 +25,14 @@ LRESULT Window::ProcMsg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	switch (msg)
 	{
 	case WM_DESTROY:
-		PostQuitMessage(0);
+		if (standalone_window) PostQuitMessage(0);
+		else if (joined)
+		{
+			EnableWindow(joined->handle, true);
+			SetForegroundWindow(joined->handle);
+			SetFocus(joined->handle);
+		}
+		handle = nullptr;
 		return 0;
 	case WM_PAINT:
 		renderer.BeginRender();
@@ -82,8 +89,8 @@ LRESULT Window::ProcMsg(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	return DefWindowProcW(hwnd, msg, wparam, lparam);
 }
 
-Window::Window(const std::string& title) :
-	handle(CreateWindowExW(WS_EX_NOREDIRECTIONBITMAP, L"AppWindow", Utils::ToUtf16(title).data(), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 720, nullptr, nullptr, nullptr, nullptr)),
+Window::Window(const std::wstring& title) :
+	handle(CreateWindowExW(WS_EX_NOREDIRECTIONBITMAP, L"AppWindow", title.data(), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 720, nullptr, nullptr, nullptr, nullptr)),
 	message([this](HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) { return ProcMsg(hwnd, msg, wparam, lparam); })
 {
 	SetWindowLongPtrW(handle, GWLP_WNDPROC, (LONG_PTR)message.Get());
@@ -93,8 +100,14 @@ Window::Window(const std::string& title) :
 	renderer.Bind(handle);
 }
 
+Window::~Window()
+{
+	if (handle) DestroyWindow(handle);
+}
+
 int Window::Run()
 {
+	standalone_window = true;
 	MSG msg;
 	ProcMsg(handle, WM_PAINT, 0, 0);
 	ShowWindow(handle, SW_SHOW);
@@ -104,6 +117,17 @@ int Window::Run()
 		DispatchMessageW(&msg);
 	}
 	return 0;
+}
+
+void Window::Join(Window* parent)
+{
+	if (parent)
+	{
+		EnableWindow(parent->handle, false);
+		joined = parent;
+	}
+	ProcMsg(handle, WM_PAINT, 0, 0);
+	ShowWindow(handle, SW_SHOW);
 }
 
 Utils::Future<void> Window::Dialog(const std::wstring& title, const std::wstring& msg, UINT type) const

@@ -152,6 +152,7 @@
     <ClCompile Include="..\GIScript\GIScript.ixx" />
     <ClCompile Include="compiler.cpp" />
     <ClCompile Include="compiler.ixx" />
+    <ClCompile Include="find_reference_window.cpp" />
     <ClCompile Include="image.cpp" />
     <ClCompile Include="image.ixx" />
     <ClCompile Include="main.cpp">

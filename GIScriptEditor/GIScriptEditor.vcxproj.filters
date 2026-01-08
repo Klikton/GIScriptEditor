@@ -69,6 +69,9 @@
     <ClCompile Include="image.cpp">
       <Filter>源文件\tools</Filter>
     </ClCompile>
+    <ClCompile Include="find_reference_window.cpp">
+      <Filter>源文件\app</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="1.png">
