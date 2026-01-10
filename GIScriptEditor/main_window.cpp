@@ -22,7 +22,7 @@ static auto LoadScript(const std::filesystem::path& path)
 MainWindow::MainWindow() : Window(L"GIScriptEditor")
 {
 	{
-		auto& t = AddWidget(std::make_unique<TextBox>(Renderer(), L"当前版本：1.1.1", 160));
+		auto& t = AddWidget(std::make_unique<TextBox>(Renderer(), L"当前版本：1.1.2", 160));
 		t.anchor = Anchor::Top;
 		t.y = 40;
 		t.SetOriginCenter();

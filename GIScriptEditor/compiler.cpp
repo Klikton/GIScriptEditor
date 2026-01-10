@@ -2311,6 +2311,12 @@ private:
 								if (v->literal.index() == 0)
 								{
 									v->Add(graph, layout());
+									if (v->flowStart)
+									{
+										prev->Connect(*v->flowStart, flow, 0, true);
+										prev = v->flowEnd;
+										flow = 0;
+									}
 									v->end->Connect(cr, v->pin, i);
 								}
 								else cr.Set(i, v->Get<float>());
@@ -2341,6 +2347,12 @@ private:
 						if (i->literal.index() == 0)
 						{
 							i->Add(graph, layout());
+							if (i->flowStart)
+							{
+								prev->Connect(*i->flowStart, flow, 0, true);
+								prev = i->flowEnd;
+								flow = 0;
+							}
 							i->end->Connect(as, i->pin, pin);
 						}
 						else
@@ -2382,6 +2394,12 @@ private:
 				auto& n2 = graph.AddNode(NodeFactory::SetLocalVariable(graph, type));
 				expr->Add(graph, layout());
 				AutoLayout(&n2);
+				if (expr->flowStart)
+				{
+					prev->Connect(*expr->flowStart, flow, 0, true);
+					prev = expr->flowEnd;
+					flow = 0;
+				}
 				prev->Connect(n2, flow, 0, true);
 				n->Connect(n2, 0, 0);
 				expr->end->Connect(n2, expr->pin, 1);
